@@ -1,18 +1,23 @@
-import { getQueryClient, trpc } from "@/trpc/server"
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { Suspense } from "react";
-import Client from "@/components/Client";
+"use client"
+
+import { useTRPC } from "@/trpc/client"
+import { useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export default function Home() {
+  const trpc = useTRPC();
+  const invoke = useMutation(trpc.invoke.mutationOptions({}))
+  const [text,setText] = useState("");
 
-  const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(trpc.hello.queryOptions({ text:"Antonio" }));
 
   return <>
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<p>Loading...</p>}>
-        <Client/>
-      </Suspense>
-    </HydrationBoundary>    
+    <div>
+      <Input type="text" placeholder="enter text to summarize" onChange={(e)=>{setText(e.target.value)}}></Input>
+      <Button onClick={()=> invoke.mutate({value:text})}>
+        Invoke Backgorund request
+      </Button>
+    </div>
   </>
 }
